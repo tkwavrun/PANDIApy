@@ -1,0 +1,17 @@
+[project]
+name = "pandiapy"
+description = "PANDIApy molecular topology tools (mooonpy-lite)"
+requires-python = ">=3.11"
+version = "0.0.1"
+authors = [
+    { name="Trevor Wavunek", email="tkwavrun@mtu.edu" },]
+
+readme = "README.md"
+dependencies = ["numpy>=1.0.0",
+                "scipy>=1.0.0",
+                "matplotlib>=3.0.0",
+                "lmfit>=1.0.0",
+                "rdkit>=2022.3"
+]
+
+

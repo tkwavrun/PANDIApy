@@ -1,0 +1,23 @@
+# --- PyCharm/IntelliJ Specific ---
+.idea/
+
+# --- Python Specific ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+dist/
+*.egg-info/
+
+# --- Local Environment / Secrets ---
+.env
+.venv
+
+
+## Kept out for now:
+pandiapy/forcefield/
