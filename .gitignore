@@ -17,7 +17,3 @@ dist/
 # --- Local Environment / Secrets ---
 .env
 .venv
-
-
-## Kept out for now:
-pandiapy/forcefield/
