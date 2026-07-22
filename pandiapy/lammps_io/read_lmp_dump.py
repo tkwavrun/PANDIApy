@@ -23,6 +23,7 @@ def read_lmp_dump(path: str, write_data: bool= False) -> Iterator[Microstate]:
                 timestep = int(f.readline())
                 mol = Microstate()
                 mol.timestep = timestep  # dataclass has no slots, so this is fine
+                mol.forcefield = 'charge'
             elif line.startswith("ITEM: NUMBER OF ATOMS"):
                 n_atoms = int(f.readline())
             elif line.startswith("ITEM: BOX BOUNDS"):
@@ -31,55 +32,11 @@ def read_lmp_dump(path: str, write_data: bool= False) -> Iterator[Microstate]:
                 cols = line.split()[2:]  # e.g. ["id", "type", "element", "x", "y", "z"]
                 _populate_atoms_from_dump(f, mol, cols, n_atoms)
                 if write_data:
-                    mol.to_lmp_datafile(f"{path.split('.')[:-1]}_{timestep}.lmp")
+                    mol.to_lmp_datafile(f"{path.split('.')[0]}_{timestep}.data",
+                                        atom_style='charge'
+                                        )
                 yield mol
             line = f.readline()
-# def read_lmp_dump(path: str, nevery: int=10, write_data: bool= False) -> Iterator[Microstate]:
-#     """
-#     Generator that yields one Microstate per frame in a LAMMPS dump file
-#     (atoms only, no bond/angle/dihedral/improper topology).
-#
-#     Usage:
-#         for mol in read_lmp_dump("traj.dump"):
-#             ...              # process frame-by-frame, O(1 frame) memory
-#
-#         last = None
-#         for last in read_lmp_dump("traj.dump"):
-#             pass             # cheap way to get just the last frame
-#
-#         frames = list(read_lmp_dump("traj.dump"))   # only if you truly
-#                                                       # want all frames at once
-#     """
-#     counter = 0
-#     with open(path, "r") as f:
-#         line = f.readline()
-#         while line:
-#             if line.startswith("ITEM: TIMESTEP"):
-#                 if counter % nevery != 0:
-#                     while line:
-#                         if line.startswith("ITEM: TIMESTEP"):
-#                             counter += 1
-#                             if counter % nevery-1 == 0:
-#                                 break
-#                         line = f.readline()
-#
-#                 timestep = int(f.readline())
-#                 mol = Microstate()
-#                 mol.timestep = timestep  # dataclass has no slots, so this is fine
-#                 counter += 1
-#                 if counter > 100: quit()
-#             elif line.startswith("ITEM: NUMBER OF ATOMS"):
-#                 n_atoms = int(f.readline())
-#             elif line.startswith("ITEM: BOX BOUNDS"):
-#                 _parse_dump_box_bounds(f, mol, line)
-#             elif line.startswith("ITEM: ATOMS"):
-#                 cols = line.split()[2:]  # e.g. ["id", "type", "element", "x", "y", "z"]
-#                 _populate_atoms_from_dump(f, mol, cols, n_atoms)
-#                 if write_data:
-#                     mol.to_lmp_datafile(f"{path.split('.')[:-1]}_{timestep}.lmp")
-#                 yield mol
-#             line = f.readline()
-
 
 ## UTIL FUNCTIONS
 def _parse_dump_box_bounds(f, mol: Microstate, header_line: str) -> None:
@@ -113,6 +70,8 @@ def _parse_dump_box_bounds(f, mol: Microstate, header_line: str) -> None:
     mol.box.ylo, mol.box.yhi = ylo, yhi
     mol.box.zlo, mol.box.zhi = zlo, zhi
 
+
+ele_dict = {'C': 1, "H": 2, "O": 3}
 ## POPULATORS
 def _populate_atoms_from_dump(f, mol: Microstate, cols: list[str], n_atoms: int) -> None:
     # map column name -> position once per frame, then index directly;
@@ -124,7 +83,7 @@ def _populate_atoms_from_dump(f, mol: Microstate, cols: list[str], n_atoms: int)
         values = f.readline().split()
         atom = Atom(
             id=int(values[col_idx["id"]]),
-            # atom_type=int(values[col_idx["type"]]),
+            atom_type=ele_dict[values[col_idx["element"]]],
             x=float(values[col_idx["x"]]),
             y=float(values[col_idx["y"]]),
             z=float(values[col_idx["z"]]),

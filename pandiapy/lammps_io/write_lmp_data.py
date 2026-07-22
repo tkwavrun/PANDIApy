@@ -53,6 +53,14 @@ def _write_header(f, comment: str) -> None:
 
 def _write_counts(f, mol: Microstate, ff: PCFF | None) -> None:
     # Use forcefield type counts if available, otherwise derive from mol
+
+    # f.write(f"{len(mol.atoms)}    atoms\n")
+    # n_atom_types = len({a.atom_type for a in mol.atoms.values()})
+    # f.write(f"{n_atom_types}    atom types\n")
+    # f.write("\n")
+    #
+    # return None
+
     # TODO: replace derived counts with forcefield object lookups when available
     n_atom_types     = ff.n_atom_types()     if ff else len({a.atom_type for a in mol.atoms.values()})
     n_bond_types     = ff.n_bond_types()     if ff else len({b.bond_type for b in mol.bonds.values()})
